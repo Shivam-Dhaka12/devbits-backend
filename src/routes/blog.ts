@@ -76,15 +76,17 @@ blogRouter.put('/:id', async (c) => {
 			});
 		}
 
+		if (data.published) {
+			data.publishedDate = new Date();
+		}
+
 		const prisma = new PrismaClient({
 			datasourceUrl: c.env?.DATABASE_URL,
 		}).$extends(withAccelerate());
 
 		const blog = await prisma.blog.update({
 			data: {
-				title: data.title,
-				content: data.content,
-				authorId: c.env.userId,
+				...data,
 			},
 			where: {
 				id: c.req.param('id'),
@@ -111,7 +113,18 @@ blogRouter.get('/all', async (c) => {
 
 	const blogs = await prisma.blog.findMany({
 		where: {
-			authorId: c.get('userId'),
+			published: true,
+		},
+		select: {
+			content: true,
+			title: true,
+			id: true,
+			publishedDate: true,
+			author: {
+				select: {
+					name: true,
+				},
+			},
 		},
 	});
 

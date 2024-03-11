@@ -29,6 +29,7 @@ userRouter.get('/', async (c) => {
 userRouter.post('/signup', async (c) => {
 	//create new prismaClient
 	const data = await c.req.json();
+	console.log(data);
 	const { success } = signupInput.safeParse(data);
 
 	if (!success) {
@@ -49,6 +50,7 @@ userRouter.post('/signup', async (c) => {
 			data: {
 				email: data.email,
 				password: data.password,
+				name: data?.name,
 			},
 		});
 
