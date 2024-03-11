@@ -33,7 +33,7 @@ userRouter.post('/signup', async (c) => {
 
 	if (!success) {
 		c.status(403);
-		c.json({
+		return c.json({
 			error: 'Invalid data',
 		});
 	}
