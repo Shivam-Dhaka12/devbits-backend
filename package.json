@@ -5,7 +5,7 @@
   },
   "dependencies": {
     "@prisma/extension-accelerate": "^0.6.3",
-    "@shivamdhaka/medium-common": "^1.0.1",
+    "@shivamdhaka/medium-common": "^1.0.2",
     "hono": "^4.0.5",
     "zod": "^3.22.4"
   },

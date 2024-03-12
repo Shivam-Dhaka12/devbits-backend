@@ -44,14 +44,18 @@ blogRouter.post('', async (c) => {
 			error: 'Invalid data',
 		});
 	}
+
+	if (data.published) {
+		data.publishedDate = new Date();
+	}
+
 	const prisma = new PrismaClient({
 		datasourceUrl: c.env?.DATABASE_URL,
 	}).$extends(withAccelerate());
 
 	const blog = await prisma.blog.create({
 		data: {
-			title: data.title,
-			content: data.content,
+			...data,
 			authorId: c.get('userId'),
 		},
 	});
@@ -149,6 +153,17 @@ blogRouter.get('/:id', async (c) => {
 		const blog = await prisma.blog.findUnique({
 			where: {
 				id: c.req.param('id'),
+			},
+			select: {
+				id: true,
+				title: true,
+				content: true,
+				publishedDate: true,
+				author: {
+					select: {
+						name: true,
+					},
+				},
 			},
 		});
 
