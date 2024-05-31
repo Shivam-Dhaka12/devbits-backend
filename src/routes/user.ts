@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { PrismaClient } from '@prisma/client/edge';
 import { withAccelerate } from '@prisma/extension-accelerate';
 import { sign } from 'hono/jwt';
+import { ZodError } from 'zod';
 import { Env, Variables } from '../hono_bindings';
 import { signupInput, signinInput } from '@shivamdhaka/medium-common';
 
@@ -30,12 +31,13 @@ userRouter.post('/signup', async (c) => {
 	//create new prismaClient
 	const data = await c.req.json();
 	console.log(data);
-	const { success } = signupInput.safeParse(data);
+	const { success, error }: { success: boolean; error?: ZodError } =
+		signupInput.safeParse(data);
 
 	if (!success) {
 		c.status(403);
 		return c.json({
-			error: 'Invalid data',
+			error: error?.message,
 		});
 	}
 
