@@ -5,6 +5,7 @@ import { sign } from 'hono/jwt';
 import { ZodError } from 'zod';
 import { Env, Variables } from '../hono_bindings';
 import { signupInput, signinInput } from '@shivamdhaka/medium-common';
+import { setCookie } from 'hono/cookie';
 
 export const userRouter = new Hono<{
 	Bindings: Env;
@@ -60,10 +61,19 @@ userRouter.post('/signup', async (c) => {
 			{
 				id: user.id,
 				email: user.email,
+				expiredAt: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7, //7 days
 			},
 			c.env.JWT_SECRET
 		);
-		return c.json({ token });
+		setCookie(c, 'token', token, {
+			httpOnly: false,
+			sameSite: 'None',
+		});
+		return c.json({
+			id: user.id,
+			email: user.email,
+			username: user.name,
+		});
 	} catch (error) {
 		return c.json({
 			statusCode: 403,
@@ -97,14 +107,14 @@ userRouter.post('/signin', async (c) => {
 		});
 
 		if (!user) {
-			c.status(403);
+			c.status(400);
 			return c.json({ error: 'User not found' });
 		}
 
 		const validPassword = user.password === data.password;
 		console.log(user.password);
 		if (!validPassword) {
-			c.status(403);
+			c.status(400);
 			return c.json({ error: 'Invalid Password' });
 		}
 
@@ -116,7 +126,16 @@ userRouter.post('/signin', async (c) => {
 			c.env.JWT_SECRET
 		);
 
-		return c.json({ token });
+		setCookie(c, 'token', token, {
+			httpOnly: false,
+			sameSite: 'Lax',
+		});
+
+		return c.json({
+			id: user.id,
+			email: user.email,
+			username: user.name,
+		});
 	} catch (error) {
 		return c.status(403);
 	}

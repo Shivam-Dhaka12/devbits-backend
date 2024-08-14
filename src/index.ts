@@ -10,7 +10,20 @@ const app = new Hono<{
 	Variables: Variables;
 }>();
 
-app.use('*', cors());
+app.use(
+	cors({
+		origin: 'http://localhost:5173',
+		credentials: true,
+	})
+);
+
+// app.use('*', async (c, next) => {
+// 	const corsMiddlewareHandler = cors({
+// 		origin: c.env.FRONTEND_URL,
+// 		credentials: true,
+// 	})
+// 	return corsMiddlewareHandler(c, next)
+//   })
 
 app.get('/', async (c) => {
 	return c.text('Hello Hono!');

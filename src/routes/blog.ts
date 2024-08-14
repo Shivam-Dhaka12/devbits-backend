@@ -4,6 +4,7 @@ import { withAccelerate } from '@prisma/extension-accelerate';
 import { verify } from 'hono/jwt';
 import { Env, Variables } from '../hono_bindings';
 import { createPostInput, updatePostInput } from '@shivamdhaka/medium-common';
+import { getCookie } from 'hono/cookie';
 
 export const blogRouter = new Hono<{
 	Bindings: Env;
@@ -13,7 +14,10 @@ export const blogRouter = new Hono<{
 blogRouter.use('*', async (c, next) => {
 	// retrieve token
 	try {
-		const token = c.req.header('Authorization')?.split(' ')[1];
+		// const token = c.req.header('Authorization')?.split(' ')[1];
+		const allCookies = getCookie(c);
+		console.log(allCookies);
+		const token = getCookie(c, 'token');
 
 		if (token) {
 			const decoded = await verify(token, c.env.JWT_SECRET);
@@ -21,15 +25,12 @@ blogRouter.use('*', async (c, next) => {
 
 			await next();
 		} else {
-			return c.json({
-				error: 'Missing auth token',
-			});
+			c.status(403);
+			return c.text('Missing auth token');
 		}
 	} catch (error) {
-		return c.json({
-			msg: 'Invalid token',
-			error: error,
-		});
+		c.status(403);
+		return c.text('Invalid token');
 	}
 });
 
