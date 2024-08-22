@@ -31,7 +31,6 @@ userRouter.get('/', async (c) => {
 userRouter.post('/signup', async (c) => {
 	//create new prismaClient
 	const data = await c.req.json();
-	console.log(data);
 	const { success, error }: { success: boolean; error?: ZodError } =
 		signupInput.safeParse(data);
 
@@ -45,8 +44,6 @@ userRouter.post('/signup', async (c) => {
 	const prisma = new PrismaClient({
 		datasourceUrl: c.env?.DATABASE_URL,
 	}).$extends(withAccelerate());
-
-	console.log(data);
 
 	try {
 		const user = await prisma.user.create({
@@ -97,8 +94,6 @@ userRouter.post('/signin', async (c) => {
 		datasourceUrl: c.env?.DATABASE_URL,
 	}).$extends(withAccelerate());
 
-	console.log(data);
-
 	try {
 		const user = await prisma.user.findUnique({
 			where: {
@@ -112,7 +107,6 @@ userRouter.post('/signin', async (c) => {
 		}
 
 		const validPassword = user.password === data.password;
-		console.log(user.password);
 		if (!validPassword) {
 			c.status(400);
 			return c.json({ error: 'Invalid Password' });
@@ -140,3 +134,36 @@ userRouter.post('/signin', async (c) => {
 		return c.status(403);
 	}
 });
+
+userRouter.post('/guest-signin', async (c) => {
+	try {
+		const data = await c.req.json();
+		const { success } = signinInput.safeParse(data);
+
+		if (!success) {
+			c.status(403);
+			return c.json({
+				error: 'Invalid data',
+			});
+		}
+		const guestToken = generateGuestToken();
+		console.log('Guest token: ', guestToken);
+
+		setCookie(c, 'token', guestToken, {
+			httpOnly: false,
+			sameSite: 'Lax',
+		});
+
+		return c.json({
+			id: guestToken,
+			email: user.email,
+			username: user.name,
+		});
+	} catch (error) {
+		return c.status(403);
+	}
+});
+
+function generateGuestToken() {
+	return 'GUEST_' + Math.random().toString(16) + Date.now().toString(16);
+}

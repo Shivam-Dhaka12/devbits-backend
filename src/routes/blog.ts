@@ -16,7 +16,6 @@ blogRouter.use('*', async (c, next) => {
 	try {
 		// const token = c.req.header('Authorization')?.split(' ')[1];
 		const allCookies = getCookie(c);
-		console.log(allCookies);
 		const token = getCookie(c, 'token');
 
 		if (token) {
@@ -132,8 +131,6 @@ blogRouter.get('/all', async (c) => {
 			},
 		},
 	});
-
-	console.log(blogs);
 
 	return c.json({
 		status: 200,
